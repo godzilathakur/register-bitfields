@@ -1,0 +1,53 @@
+{
+  "peripheral_name": "Fancy",
+  "config": {
+    "width": 8
+  },
+  "registers": [
+    {
+      "name": "init_block",
+      "fields": [
+        {
+          "name": "status",
+          "msb": 7,
+          "lsb": 5,
+          "values": {
+            "uninitialized": 0,
+            "reset": 1,
+            "calibration": 2,
+            "reserved": 3,
+            "overcurrent": 4,
+            "watchdog": 5,
+            "initialized": 6,
+            "ready": 7
+          }
+        },
+        {
+          "name": "mode",
+          "msb": 2,
+          "lsb": 1
+        },
+        {
+          "name": "reset",
+          "msb": 0,
+          "lsb": 0
+        }
+      ]
+    },
+    {
+      "name": "command",
+      "fields": [
+        {
+          "name": "module",
+          "msb": 4,
+          "lsb": 2
+        },
+        {
+          "name": "assert",
+          "msb": 1,
+          "lsb": 1
+        }
+      ]
+    }
+  ]
+}
