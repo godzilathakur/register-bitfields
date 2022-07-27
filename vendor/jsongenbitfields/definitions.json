@@ -9,6 +9,7 @@
       "fields": [
         {
           "name": "status",
+          "attribute": "r",
           "msb": 7,
           "lsb": 5,
           "values": {
@@ -24,11 +25,19 @@
         },
         {
           "name": "mode",
+          "attribute": "rw",
           "msb": 2,
-          "lsb": 1
+          "lsb": 1,
+          "values": {
+            "freerunning": 0,
+            "stepped": 1,
+            "reserved": 2,
+            "disabled": 3
+          }
         },
         {
           "name": "reset",
+          "attribute": "w",
           "msb": 0,
           "lsb": 0
         }
@@ -39,11 +48,17 @@
       "fields": [
         {
           "name": "module",
+          "attribute": "rw",
           "msb": 4,
-          "lsb": 2
+          "lsb": 2,
+          "values": {
+            "actuator": 2,
+            "gpio": 4
+          }
         },
         {
           "name": "assert",
+          "attribute": "w",
           "msb": 1,
           "lsb": 1
         }
