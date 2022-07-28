@@ -1,20 +1,13 @@
 package main
 
-/*
-  ___  _  _    ___  _       _     _    ___
- | _ )(_)| |_ | __|(_) ___ | | __| |  / __| ___  _ _
- | _ \| ||  _|| _| | |/ -_)| |/ _` | | (_ |/ -_)| ' \
- |___/|_| \__||_|  |_|\___||_|\__,_|  \___|\___||_||_|
-*/
-
 import (
 	"flag"
 	"fmt"
-	"github.com/godzilathakur/bitfieldgen/definitions"
+	"github.com/godzilathakur/bitfieldgen/builder"
+	"github.com/godzilathakur/bitfieldgen/parser"
+	"github.com/godzilathakur/bitfieldgen/printer"
 	"io/ioutil"
 	"log"
-	"os"
-	"strings"
 )
 
 var asciiWelcome []string = []string{
@@ -24,155 +17,14 @@ var asciiWelcome []string = []string{
 	`|___/|_| \__||_|  |_|\___||_|\__,_|  \___|\___||_||_|`,
 }
 
-type Config struct {
-	Width int `json:"width"`
-}
-
-type RegisterField struct {
-	Name      string                 `json:"name"`
-	Attribute string                 `json:"attribute"`
-	Msb       int                    `json:"msb"`
-	Lsb       int                    `json:"lsb"`
-	Values    map[string]interface{} `json:"values"`
-}
-
-type Register struct {
-	Name   string          `json:"name"`
-	Fields []RegisterField `json:"fields"`
-}
-
-type Definitions struct {
-	PeripheralName string     `json:"peripheral_name"`
-	Config         Config     `json:"config"`
-	Registers      []Register `json:"registers"`
-}
-
-func printRegisterDefs(registerDefs definitions.RegisterDefinitions) {
-	fmt.Printf("RegisterDefinitions Name: %s\n", registerDefs.PeripheralName)
-	fmt.Printf("Width: %d\n", registerDefs.Config.Width)
-
-	for _, register := range registerDefs.Registers {
-		fmt.Printf("Register Name: %s\n", register.Name)
-		for _, field := range register.Fields {
-			fmt.Printf("Field Name: %s\n", field.Name)
-			fmt.Printf("Field LSB: %d\n", field.Lsb)
-			fmt.Printf("Field MSB: %d\n", field.Msb)
-
-			if field.Values != nil {
-				for name, value := range field.Values {
-					valInt := (int)(value.(float64))
-					fmt.Printf("%s = %d\n",
-						strings.ToUpper(name),
-						valInt)
-				}
-			}
-		}
-	}
-}
-
-func convertFieldToCppStructBitField(field RegisterField) []string {
-	result := []string{}
-	return result
-}
-
-func convertFieldValuesToCEnum(values map[string]interface{}, name string) []string {
-	result := []string{}
-	result = append(result, fmt.Sprintf("enum %s_t {", name))
-	for name, value := range values {
-		valInt := (int)(value.(float64))
-		result = append(result, fmt.Sprintf("  %s = %d,",
-			strings.ToUpper(name),
-			valInt))
-	}
-	result = append(result, fmt.Sprintf("};"))
-	return result
-}
-
-func convertFieldValuesToCppEnum(values map[string]interface{}, name string) []string {
-	result := []string{}
-	result = append(result, fmt.Sprintf("enum class %s_t {", name))
-	for name, value := range values {
-		valInt := (int)(value.(float64))
-		result = append(result, fmt.Sprintf("  %s = %d,",
-			strings.ToUpper(name),
-			valInt))
-	}
-	result = append(result, fmt.Sprintf("};"))
-	return result
-}
-
-func generateCRegisterDefs(registerDefs definitions.RegisterDefinitions) {
-	file, err := os.Create(strings.ToLower(registerDefs.PeripheralName) + "_register_defs_c.h")
-	defer file.Close()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Fprintln(file, `#pragma once`)
-	fmt.Fprintln(file, `// auto-generated file using bitfield-gen`)
-	fmt.Fprintln(file)
-
-	for _, register := range registerDefs.Registers {
-		fmt.Fprintf(file, "struct %s_t {\n", register.Name)
-		for _, field := range register.Fields {
-			if field.Msb >= registerDefs.Config.Width {
-				fmt.Fprintf(file, "  unsigned int: 0;\n")
-			}
-			fmt.Fprintf(file, "  unsigned int %s : %d;\n",
-				field.Name,
-				field.Msb-field.Lsb+1)
-			if field.Values != nil {
-				for _, fieldEnumLine := range convertFieldValuesToCEnum(field.Values, field.Name) {
-					fmt.Fprintf(file, "  %s\n", fieldEnumLine)
-				}
-			}
-		}
-		fmt.Fprintf(file, "};\n\n")
-		fmt.Println("Generated C header")
-	}
-}
-
-func generateCppRegisterDefs(registerDefs definitions.RegisterDefinitions) {
-	file, err := os.Create(strings.ToLower(registerDefs.PeripheralName) + "_register_defs_cpp.h")
-	defer file.Close()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Fprintln(file, `#pragma once`)
-	fmt.Fprintln(file, `// auto-generated file using bitfield-gen`)
-	fmt.Fprintln(file)
-
-	for _, register := range registerDefs.Registers {
-		fmt.Fprintf(file, "struct %s_t {\n", register.Name)
-		for _, field := range register.Fields {
-			if field.Msb >= registerDefs.Config.Width {
-				fmt.Fprintf(file, "  unsigned int: 0;\n")
-			}
-			fmt.Fprintf(file, "  unsigned int %s : %d;\n",
-				field.Name,
-				field.Msb-field.Lsb+1)
-			if field.Values != nil {
-				for _, fieldEnumLine := range convertFieldValuesToCppEnum(field.Values, field.Name) {
-					fmt.Fprintf(file, "  %s\n", fieldEnumLine)
-				}
-			}
-		}
-		fmt.Fprintf(file, "};\n\n")
-		fmt.Println("Generated C++ header")
-	}
-}
-
 var registerDefsFileNamePtr = flag.String("file", "definitions.json", "register definitions file name")
 var verbosePtr = flag.Bool("v", false, "print parsed definition")
-var genCppHeaderPtr = flag.Bool("gencpp", false, "generate C++ header from register definitions")
-var genCHeaderPtr = flag.Bool("genc", false, "generate C header from register definitions")
-var genAll = flag.Bool("gen", false, "generate C and C++ headers from register definitions")
+var genCppHeaderPtr = flag.Bool("gencpp", false, "generate C++ header from register defs")
+var genCHeaderPtr = flag.Bool("genc", false, "generate C header from register defs")
+var genAll = flag.Bool("gen", false, "generate C and C++ headers from register defs")
 
 // @TODO
-// var genRustHeaderPtr = flag.Bool("genrust", false, "generate rust header from register definitions")
+// var genRustHeaderPtr = flag.Bool("genrust", false, "generate rust header from register parser")
 
 func main() {
 	for _, line := range asciiWelcome {
@@ -185,21 +37,23 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Generating for ", *registerDefsFileNamePtr)
-	if jsonText, err := ioutil.ReadFile(*registerDefsFileNamePtr); err != nil {
+	if text, err := ioutil.ReadFile(*registerDefsFileNamePtr); err != nil {
 		fmt.Println(err)
 	} else {
-		parser := definitions.JsonRegDefParser{}
-		if registerDefs, err := parser.ParseRegisterDefinitions(jsonText); err != nil {
+		parser := parser.JsonRegDefParser{}
+		if registerDefs, err := parser.ParseRegisterDefinitions(text); err != nil {
 			log.Fatal(err)
 		} else {
 			if *verbosePtr == true {
-				printRegisterDefs(registerDefs)
+				printer.PrintRegisterDefs(registerDefs)
 			}
 			if *genCHeaderPtr == true || *genAll == true {
-				generateCRegisterDefs(registerDefs)
+				hBuilder := builder.HBuilder{"_c_register_defs.h"}
+				hBuilder.BuildHeader(registerDefs)
 			}
 			if *genCppHeaderPtr == true || *genAll == true {
-				generateCppRegisterDefs(registerDefs)
+				hppBuilder := builder.HppBuilder{"_cpp_register_defs.h"}
+				hppBuilder.BuildHeader(registerDefs)
 			}
 		}
 	}
