@@ -8,6 +8,7 @@ import (
 	"github.com/godzilathakur/bitfieldgen/printer"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 )
 
 var asciiWelcome []string = []string{
@@ -37,11 +38,19 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Generating for ", *registerDefsFileNamePtr)
+
+	var parserHandle parser.RegisterDefinitionsParser
+	if filepath.Ext(*registerDefsFileNamePtr) == ".json" {
+		parserHandle = &parser.JsonRegDefParser{}
+	} else {
+		log.Println("Only JSON definition file supported currently... aborting")
+		return
+	}
+
 	if text, err := ioutil.ReadFile(*registerDefsFileNamePtr); err != nil {
 		fmt.Println(err)
 	} else {
-		parser := parser.JsonRegDefParser{}
-		if registerDefs, err := parser.ParseRegisterDefinitions(text); err != nil {
+		if registerDefs, err := parserHandle.ParseRegisterDefinitions(text); err != nil {
 			log.Fatal(err)
 		} else {
 			if *verbosePtr == true {
