@@ -94,7 +94,7 @@ func (def RegisterDefinitions) RegisterDefinitions() []RegisterType {
 
 type JsonRegDefParser struct{}
 
-func (parser *JsonRegDefParser) ParseRegisterDefinitions(text []byte) (RegisterDefinitions, error) {
+func (parser *JsonRegDefParser) ParseRegisterDefinitions(text []byte) (RegisterDefinitionsType, error) {
 	regDefs := RegisterDefinitions{}
 	if err := json.Unmarshal(text, &regDefs); err != nil {
 		return regDefs, errors.Unwrap(err)
