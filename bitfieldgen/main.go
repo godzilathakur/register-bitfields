@@ -1,4 +1,4 @@
-package main 
+package main
 
 /*
   ___  _  _    ___  _       _     _    ___
@@ -8,10 +8,11 @@ package main
 */
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/godzilathakur/bitfieldgen/definitions"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
@@ -46,8 +47,8 @@ type Definitions struct {
 	Registers      []Register `json:"registers"`
 }
 
-func printRegisterDefs(registerDefs Definitions) {
-	fmt.Printf("Peripheral Name: %s\n", registerDefs.PeripheralName)
+func printRegisterDefs(registerDefs definitions.RegisterDefinitions) {
+	fmt.Printf("RegisterDefinitions Name: %s\n", registerDefs.PeripheralName)
 	fmt.Printf("Width: %d\n", registerDefs.Config.Width)
 
 	for _, register := range registerDefs.Registers {
@@ -100,7 +101,7 @@ func convertFieldValuesToCppEnum(values map[string]interface{}, name string) []s
 	return result
 }
 
-func generateCRegisterDefs(registerDefs Definitions) {
+func generateCRegisterDefs(registerDefs definitions.RegisterDefinitions) {
 	file, err := os.Create(strings.ToLower(registerDefs.PeripheralName) + "_register_defs_c.h")
 	defer file.Close()
 	if err != nil {
@@ -132,7 +133,7 @@ func generateCRegisterDefs(registerDefs Definitions) {
 	}
 }
 
-func generateCppRegisterDefs(registerDefs Definitions) {
+func generateCppRegisterDefs(registerDefs definitions.RegisterDefinitions) {
 	file, err := os.Create(strings.ToLower(registerDefs.PeripheralName) + "_register_defs_cpp.h")
 	defer file.Close()
 	if err != nil {
@@ -184,12 +185,12 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Generating for ", *registerDefsFileNamePtr)
-	if file, err := ioutil.ReadFile(*registerDefsFileNamePtr); err != nil {
+	if jsonText, err := ioutil.ReadFile(*registerDefsFileNamePtr); err != nil {
 		fmt.Println(err)
 	} else {
-		registerDefs := Definitions{}
-		if err := json.Unmarshal([]byte(file), &registerDefs); err != nil {
-			fmt.Println(err)
+		parser := definitions.JsonRegDefParser{}
+		if registerDefs, err := parser.ParseRegisterDefinitions(jsonText); err != nil {
+			log.Fatal(err)
 		} else {
 			if *verbosePtr == true {
 				printRegisterDefs(registerDefs)
