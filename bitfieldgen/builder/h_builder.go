@@ -34,10 +34,8 @@ func generateCRegisterDefs(file *os.File, registerDefs parser.RegisterDefinition
 			fmt.Fprintf(file, "  unsigned int %s : %d;\n",
 				field.Name(),
 				field.Msb()-field.Lsb()+1)
-			if field.Values != nil {
-				for _, fieldEnumLine := range convertFieldValuesToCEnum(field.Values(), field.Name()) {
-					fmt.Fprintf(file, "  %s\n", fieldEnumLine)
-				}
+			for _, fieldEnumLine := range convertFieldValuesToCEnum(field.Values(), field.Name()) {
+				fmt.Fprintf(file, "  %s\n", fieldEnumLine)
 			}
 		}
 		fmt.Fprintf(file, "};\n\n")

@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 type Config struct {
@@ -26,12 +27,11 @@ func (field Field) Name() string {
 }
 
 func (field Field) Attribute() RegisterFieldAttribute {
-	switch field.FieldAttribute {
-	case "READ_ONLY":
+	if strings.Compare("r", field.FieldAttribute) == 0 {
 		return READ_ONLY
-	case "WRITE_ONLY":
+	} else if strings.Compare("w", field.FieldAttribute) == 0 {
 		return WRITE_ONLY
-	case "READ_WRITE":
+	} else if strings.Compare("rw", field.FieldAttribute) == 0 {
 		return READ_WRITE
 	}
 	return UNSUPPORTED
@@ -46,6 +46,9 @@ func (field Field) Lsb() int {
 }
 
 func (field Field) Values() map[string]int {
+	if len(field.FieldValues) == 0 {
+		return nil
+	}
 	values := map[string]int{}
 	for name, val := range field.FieldValues {
 		values[name] = (int)(val.(float64))

@@ -13,6 +13,18 @@ const (
 	UNSUPPORTED                        = -1
 )
 
+func (attr RegisterFieldAttribute) String() string {
+	switch attr {
+	case READ_ONLY:
+		return "READ_ONLY"
+	case WRITE_ONLY:
+		return "WRITE_ONLY"
+	case READ_WRITE:
+		return "READ_WRITE"
+	}
+	return "UNSUPPORTED"
+}
+
 type RegisterFieldType interface {
 	Name() string
 	Attribute() RegisterFieldAttribute
