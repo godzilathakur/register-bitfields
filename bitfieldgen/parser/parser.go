@@ -40,6 +40,8 @@ type RegisterType interface {
 
 type RegisterDefinitionsType interface {
 	PeripheralName() string
+	PeripheralDescription() string
+	PeripheralSpecUrl() string
 	PeripheralConfig() PeripheralConfigType
 	RegisterDefinitions() []RegisterType
 }

@@ -31,7 +31,7 @@ func main() {
 	for _, line := range asciiWelcome {
 		fmt.Println(line)
 	}
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 4; i++ {
 		fmt.Println()
 	}
 

@@ -223,7 +223,15 @@ func buildRegisterClass(file *os.File, register parser.RegisterType, registerWid
 
 func generateCppRegisterDefs(file *os.File, registerDefs parser.RegisterDefinitionsType) {
 	fmt.Fprintln(file, `#pragma once`)
-	fmt.Fprintln(file, `// auto-generated file using bitfield-gen`)
+	fmt.Fprintln(file, `/* auto-generated file using bitfieldgen`)
+	fmt.Fprintln(file)
+	fmt.Fprintf(file, ` Peripheral Name %s`, registerDefs.PeripheralName())
+	fmt.Fprintln(file)
+	fmt.Fprintf(file, ` Description %s`, registerDefs.PeripheralDescription())
+	fmt.Fprintln(file)
+	fmt.Fprintf(file, ` Specifications %s`, registerDefs.PeripheralSpecUrl())
+	fmt.Fprintln(file)
+	fmt.Fprintln(file, `*/`)
 	fmt.Fprintln(file)
 
 	tab := 0

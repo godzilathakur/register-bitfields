@@ -74,9 +74,11 @@ func (reg Register) Fields() []RegisterFieldType {
 }
 
 type RegisterDefinitions struct {
-	Name      string     `json:"peripheral_name"`
-	Config    Config     `json:"config"`
-	Registers []Register `json:"registers"`
+	Name        string     `json:"peripheral_name"`
+	Description string     `json:"description"`
+	SpecUrl     string     `json:"spec_url"`
+	Config      Config     `json:"config"`
+	Registers   []Register `json:"registers"`
 }
 
 func (def RegisterDefinitions) PeripheralName() string {
@@ -85,6 +87,14 @@ func (def RegisterDefinitions) PeripheralName() string {
 
 func (def RegisterDefinitions) PeripheralConfig() PeripheralConfigType {
 	return def.Config
+}
+
+func (def RegisterDefinitions) PeripheralDescription() string {
+	return def.Description
+}
+
+func (def RegisterDefinitions) PeripheralSpecUrl() string {
+	return def.SpecUrl
 }
 
 func (def RegisterDefinitions) RegisterDefinitions() []RegisterType {
