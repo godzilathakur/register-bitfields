@@ -1,0 +1,43 @@
+{
+  "peripheral_name": "PI4MSD5V9542A",
+  "description": "2 Channel I2C bus Multiplexer",
+  "spec_url": "https://www.diodes.com/assets/Datasheets/PI4MSD5V9542A.pdf",
+  "address": 64,
+  "config": {
+    "width": 8
+  },
+  "registers": [
+    {
+      "name": "control_reg",
+      "address": 0,
+      "fields": [
+        {
+          "name": "interrupts",
+          "attribute": "r",
+          "msb": 5,
+          "lsb": 4,
+          "values": {
+            "int_0": 0,
+            "int_1": 1
+          }
+        },
+        {
+          "name": "enable",
+          "attribute": "rw",
+          "msb": 2,
+          "lsb": 2
+        },
+        {
+          "name": "channel_selection",
+          "attribute": "rw",
+          "msb": 1,
+          "lsb": 0,
+          "values": {
+            "channel_0": 0,
+            "channel_1": 1
+          }
+        }
+      ]
+    }
+  ]
+}
