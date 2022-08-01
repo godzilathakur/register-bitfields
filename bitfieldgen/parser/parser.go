@@ -35,6 +35,7 @@ type RegisterFieldType interface {
 
 type RegisterType interface {
 	Name() string
+	Address() int
 	Fields() []RegisterFieldType
 }
 
@@ -43,6 +44,7 @@ type RegisterDefinitionsType interface {
 	PeripheralDescription() string
 	PeripheralSpecUrl() string
 	PeripheralConfig() PeripheralConfigType
+	PeripheralAddress() int
 	RegisterDefinitions() []RegisterType
 }
 

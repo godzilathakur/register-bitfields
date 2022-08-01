@@ -14,15 +14,53 @@ const (
 )
 
 func buildIoMethods(file *os.File, tab int) {
-	fmt.Fprintf(file, `%svoid io_write(const unsigned int data) {
+	fmt.Fprintf(file, `%svoid io_write(const unsigned int reg_addr, const unsigned int data) {
 
 	};`, WhiteSpace(tabSize, tab))
 	fmt.Fprintln(file)
+	fmt.Fprintln(file)
 
-	fmt.Fprintf(file, `%svoid io_read(unsigned int& data) {
+	fmt.Fprintf(file, `%svoid io_read(const unsigned int reg_addr, unsigned int& data) {
 
 	};`, WhiteSpace(tabSize, tab))
 	fmt.Fprintln(file)
+	fmt.Fprintln(file)
+}
+
+func buildUnion(file *os.File, register parser.RegisterType, registerWidthBits int, tab int) {
+	fmt.Fprintf(file, "%sunion register_defs_t {\n",
+		WhiteSpace(tabSize, tab))
+
+	tab++
+	buildStructBitfield(file, register.Fields(), registerWidthBits, tab)
+	fmt.Fprintf(file, "%sunsigned int m_data;\n",
+		WhiteSpace(tabSize, tab))
+	fmt.Fprintln(file)
+
+	fmt.Fprintf(file, `%sregister_defs_t() {
+		io_read(c_register_%s_addr, m_data);
+	};`, WhiteSpace(tabSize, tab),
+		register.Name())
+	fmt.Fprintln(file)
+
+	fmt.Fprintf(file, `%sregister_defs_t& operator=(const register_defs_t& other) {
+		m_data = other.m_data;
+		return *this;
+	};`, WhiteSpace(tabSize, tab))
+	fmt.Fprintln(file)
+
+	fmt.Fprintf(file, `%svoid operator=(const unsigned int val) {
+		m_data = val;
+		io_write(c_register_%s_addr, m_data);
+	};`, WhiteSpace(tabSize, tab),
+		register.Name())
+	fmt.Fprintln(file)
+
+	tab--
+	fmt.Fprintf(file, "%s};\n",
+		WhiteSpace(tabSize, tab))
+	fmt.Fprintln(file)
+
 }
 
 func buildStructBitfield(file *os.File, fields []parser.RegisterFieldType, registerWidthBits int, tab int) {
@@ -61,35 +99,10 @@ func buildStructBitfield(file *os.File, fields []parser.RegisterFieldType, regis
 	tab--
 	fmt.Fprintf(file, "%s} m_fields;\n",
 		WhiteSpace(tabSize, tab))
-	fmt.Fprintf(file, "%sunsigned int m_data;\n",
-		WhiteSpace(tabSize, tab))
-	fmt.Fprintln(file)
-
-	fmt.Fprintf(file, `%sregister_defs_t() {
-		io_read(m_data);
-	};`, WhiteSpace(tabSize, tab))
-	fmt.Fprintln(file)
-
-	fmt.Fprintf(file, `%sregister_defs_t& operator=(const register_defs_t& other) {
-		m_data = other.m_data;
-		return *this;
-	};`, WhiteSpace(tabSize, tab))
-	fmt.Fprintln(file)
-
-	fmt.Fprintf(file, `%svoid operator=(const unsigned int val) {
-		m_data = val;
-		io_write(m_data);
-	};`, WhiteSpace(tabSize, tab))
-	fmt.Fprintln(file)
-
-	tab--
-	fmt.Fprintf(file, "%s};\n",
-		WhiteSpace(tabSize, tab))
-	fmt.Fprintln(file)
 }
 
 func buildFieldValueEnum(file *os.File, field parser.RegisterFieldType, tab int) {
-	fmt.Fprintf(file, "%senum class %s_values_t {\n",
+	fmt.Fprintf(file, "%senum class %s_t {\n",
 		WhiteSpace(tabSize, tab),
 		field.Name())
 	tab++
@@ -187,13 +200,14 @@ func buildRegisterClass(file *os.File, register parser.RegisterType, registerWid
 		WhiteSpace(tabSize, tab))
 
 	tab++
-	fmt.Fprintf(file, "%sunion register_defs_t {\n",
-		WhiteSpace(tabSize, tab))
+	fmt.Fprintf(file, `%sconstexpr static unsigned int c_register_%s_addr = %d;`,
+		WhiteSpace(tabSize, tab),
+		register.Name(),
+		register.Address())
+	fmt.Fprintln(file)
 
-	tab++
-	buildStructBitfield(file, register.Fields(), registerWidthBits, tab)
+	buildUnion(file, register, registerWidthBits, tab)
 
-	tab--
 	tab--
 	fmt.Fprintf(file, "%spublic:\n",
 		WhiteSpace(tabSize, tab))
@@ -235,6 +249,12 @@ func generateCppRegisterDefs(file *os.File, registerDefs parser.RegisterDefiniti
 	fmt.Fprintln(file)
 
 	tab := 0
+
+	fmt.Fprintf(file, `%sconstexpr static unsigned int c_peripheral_addr = %d;`,
+		WhiteSpace(tabSize, tab),
+		registerDefs.PeripheralAddress())
+	fmt.Fprintln(file)
+
 	buildIoMethods(file, tab)
 
 	for _, register := range registerDefs.RegisterDefinitions() {

@@ -57,12 +57,17 @@ func (field Field) Values() map[string]int {
 }
 
 type Register struct {
-	RegisterName   string  `json:"name"`
-	RegisterFields []Field `json:"fields"`
+	RegisterName    string  `json:"name"`
+	RegisterAddress int     `json:"address"`
+	RegisterFields  []Field `json:"fields"`
 }
 
 func (reg Register) Name() string {
 	return reg.RegisterName
+}
+
+func (reg Register) Address() int {
+	return reg.RegisterAddress
 }
 
 func (reg Register) Fields() []RegisterFieldType {
@@ -78,6 +83,7 @@ type RegisterDefinitions struct {
 	Description string     `json:"description"`
 	SpecUrl     string     `json:"spec_url"`
 	Config      Config     `json:"config"`
+	Address     int        `json:"address"`
 	Registers   []Register `json:"registers"`
 }
 
@@ -95,6 +101,10 @@ func (def RegisterDefinitions) PeripheralDescription() string {
 
 func (def RegisterDefinitions) PeripheralSpecUrl() string {
 	return def.SpecUrl
+}
+
+func (def RegisterDefinitions) PeripheralAddress() int {
+	return def.Address
 }
 
 func (def RegisterDefinitions) RegisterDefinitions() []RegisterType {
