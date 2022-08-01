@@ -14,12 +14,14 @@ In order to describe the register definitions, we use a JSON format as follows
 ```
  {
    "peripheral_name": # string - name of the peripheral
+   "peripheral_address": # int - I2C slave address
   "config": {
     "width": # float64 - width of each register in bits, default: 8
   },
   "registers": [
     {
       "name":  # string - name of the register
+      "address": # int - I2C register address
       
       "fields": [
         {
@@ -55,12 +57,8 @@ Please refer the example json definition files
 Define definitions.json file per the register spec you need. 
 
 ```shell
+cd bitfieldgen
 go build .
-./jsongenbitfields -gen
+./bitfieldgen -file <your_filename>.json -gencpp
 ```
-If you want to use a different filename, supply it as follows
-```shell
-./jsongenbitfields -file <your_filename>.json -gen
-```
-
-The program generates C/C++ header file in the format: <your_peripheral_name>.h 
+The program generates C++ header file in the format: <your_peripheral_name>.h
